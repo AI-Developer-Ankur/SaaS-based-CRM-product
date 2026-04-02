@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NexusCRM — MVP Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8f9fb;
+    --surface: #ffffff;
+    --surface2: #f1f3f7;
+    --border: #e0e4eb;
+    --accent: #2563eb;
+    --accent2: #7c3aed;
+    --green: #10b981;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px; min-height: 100vh; background: var(--surface);
+    border-right: 1px solid var(--border); display: flex; flex-direction: column;
+    position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .logo { padding: 22px 20px; border-bottom: 1px solid var(--border); }
+  .logo h1 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .logo p { font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
+  .tenant-badge { margin: 12px 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+  .tenant-badge p { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+  .tenant-badge h4 { font-size: 12px; font-weight: 500; color: var(--text); margin-top: 2px; }
+  nav { flex: 1; padding: 8px 10px; overflow-y: auto; }
+  .nav-section { font-size: 9px; color: var(--muted); letter-spacing: 1.2px; text-transform: uppercase; padding: 12px 8px 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+    border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--muted);
+    transition: all 0.2s; margin-bottom: 1px;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(37,99,235,0.1); color: var(--accent); font-weight: 500; }
+  .nav-item .icon { width: 16px; text-align: center; font-size: 14px; }
+  .nav-item .badge { margin-left: auto; background: var(--accent); color: #fff; font-size: 9px; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
+  .nav-item .badge.green { background: var(--green); }
+  .nav-item .badge.amber { background: var(--amber); color: #000; }
+  .sidebar-footer { padding: 14px 16px; border-top: 1px solid var(--border); }
+  .user-chip { display: flex; align-items: center; gap: 9px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; box-shadow: 0 2px 4px rgba(37,99,235,0.3); }
+  .user-chip p { font-size: 12px; font-weight: 500; }
+  .user-chip span { font-size: 10px; color: var(--muted); }
+  .role-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 4px; }
+
+  /* MAIN */
+  .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; overflow: hidden; }
+  .topbar {
+    padding: 14px 28px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); position: sticky; top: 0; z-index: 50; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  .topbar h2 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .btn {
+    padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 500;
+    cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 2px 4px rgba(37,99,235,0.2); }
+  .btn-primary:hover { background: #1d4ed8; box-shadow: 0 4px 8px rgba(37,99,235,0.3); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text); background: var(--surface2); }
+  .btn-sm { padding: 5px 12px; font-size: 11px; }
+  .btn-danger { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .btn-success { background: rgba(34,200,122,0.15); color: var(--green); border: 1px solid rgba(34,200,122,0.3); }
+  .notif-btn { position: relative; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; cursor: pointer; font-size: 16px; transition: all 0.2s; }
+  .notif-btn:hover { background: var(--border); }
+  .notif-dot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; background: var(--red); border-radius: 50%; border: 2px solid var(--surface); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); } 50% { box-shadow: 0 0 0 4px rgba(239,68,68,0); } }
+  .content { flex: 1; padding: 24px 28px; overflow-y: auto; height: calc(100vh - 57px); }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px;
+    position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s;
+  }
+  .stat-card:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .stat-card.blue::before { background: var(--accent); }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.amber::before { background: var(--amber); }
+  .stat-card.purple::before { background: var(--accent2); }
+  .stat-card p { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+  .stat-card h3 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 700; margin: 4px 0; }
+  .stat-card span { font-size: 11px; color: var(--green); }
+  .stat-card span.neg { color: var(--red); }
+
+  /* GRID 2 COL */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+  /* SECTION CARD */
+  .section-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .section-card h3 { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; padding: 0 12px 10px; font-weight: 600; }
+  td { padding: 11px 12px; border-top: 1px solid var(--border); vertical-align: middle; }
+  tr:hover td { background: var(--surface2); }
+
+  /* BADGES */
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 600; letter-spacing: 0.4px; }
+  .badge-blue { background: rgba(37,99,235,0.1); color: #1d4ed8; }
+  .badge-green { background: rgba(16,185,129,0.1); color: #047857; }
+  .badge-amber { background: rgba(245,158,11,0.1); color: #b45309; }
+  .badge-red { background: rgba(239,68,68,0.1); color: #991b1b; }
+  .badge-purple { background: rgba(124,92,252,0.1); color: #6d28d9; }
+  .badge-gray { background: rgba(107,114,128,0.1); color: #374151; }
+
+  /* PIPELINE */
+  .pipeline { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
+  .pipeline-col { min-width: 180px; flex-shrink: 0; }
+  .pipeline-col-header { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+  .pipeline-col-header .count { background: var(--surface2); border-radius: 10px; padding: 1px 7px; font-size: 10px; }
+  .deal-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .deal-card:hover { border-color: var(--accent); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+  .deal-card h4 { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+  .deal-card p { font-size: 11px; color: var(--muted); }
+  .deal-card .value { font-size: 13px; font-weight: 600; color: var(--green); margin-top: 6px; }
+
+  /* KANBAN */
+  .kanban { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
+  .kanban-col { min-width: 200px; flex-shrink: 0; background: var(--surface2); border-radius: 10px; padding: 12px; border: 1px solid var(--border); }
+  .kanban-col-title { font-size: 11px; font-weight: 600; color: var(--text); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .kanban-col-title .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .task-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .task-card:hover { border-color: var(--accent); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+  .task-card h4 { font-size: 12px; font-weight: 500; margin-bottom: 5px; }
+  .task-card p { font-size: 10px; color: var(--muted); }
+  .task-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .avatar-sm { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; }
+  .task-indicators { display: flex; gap: 6px; margin-top: 8px; font-size: 10px; justify-content: space-between; }
+  .task-indicator { display: flex; align-items: center; gap: 3px; color: var(--muted); }
+  
+  /* PRICE BOOKS */
+  .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+  .price-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .price-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .price-card p { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .price-value { font-size: 18px; color: var(--accent); font-weight: 700; }
+  
+  /* DOCUMENTS */
+  .doc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .doc-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; cursor: pointer; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .doc-card:hover { border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .doc-icon { font-size: 32px; margin-bottom: 10px; }
+  .doc-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .doc-card p { font-size: 11px; color: var(--muted); }
+  
+  /* TIME TRACKING */
+  .time-log { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .time-log p { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .time-input { display: flex; gap: 6px; }
+  .time-input input { width: 60px; height: 24px; padding: 0 6px; font-size: 11px; border: 1px solid var(--border); border-radius: 4px; }
+  .time-input button { padding: 0 10px; height: 24px; font-size: 11px; }
+
+  /* PROGRESS BAR */
+  .progress-bar { background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden; margin-top: 6px; border: 1px solid var(--border); }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+
+  /* FORM */
+  .form-group { margin-bottom: 14px; }
+  .form-group label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 500; }
+  .form-control {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 9px 12px; font-size: 13px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  select.form-control option { background: var(--surface2); color: var(--text); }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; width: 480px; max-width: 95vw; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+  .modal h3 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 18px; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+
+  /* NOTIFICATION PANEL */
+  .notif-panel { position: fixed; top: 57px; right: 20px; width: 300px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; z-index: 150; display: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
+  .notif-panel.open { display: block; }
+  .notif-panel-header { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; }
+  .notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; }
+  .notif-item:hover { background: var(--surface2); }
+  .notif-item p { font-size: 12px; margin-bottom: 3px; }
+  .notif-item span { font-size: 10px; color: var(--muted); }
+  .notif-item .n-dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; display: inline-block; margin-right: 6px; }
+
+  /* AUDIT LOG */
+  .audit-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .audit-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; background: var(--surface2); }
+  .audit-item p { font-size: 12px; }
+  .audit-item span { font-size: 10px; color: var(--muted); }
+
+  /* TIMELINE */
+  .timeline-item { display: flex; gap: 12px; margin-bottom: 14px; }
+  .timeline-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .timeline-line { width: 1px; background: var(--border); margin: 0 auto; }
+  .timeline-item p { font-size: 12px; margin-bottom: 2px; }
+  .timeline-item span { font-size: 10px; color: var(--muted); }
+
+  /* ERP */
+  .resource-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .resource-card h4 { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .resource-card p { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+
+  /* REPORTING */
+  .report-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .report-bar-label { font-size: 11px; color: var(--muted); width: 90px; flex-shrink: 0; }
+  .report-bar-track { flex: 1; background: var(--surface2); border-radius: 4px; height: 20px; overflow: hidden; border: 1px solid var(--border); }
+  .report-bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 10px; font-weight: 600; color: #fff; }
+  .report-bar-value { font-size: 11px; color: var(--text); width: 30px; text-align: right; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* FLOW INDICATOR */
+  .flow-steps { display: flex; align-items: center; gap: 0; margin-bottom: 20px; overflow-x: auto; }
+  .flow-step { display: flex; align-items: center; }
+  .flow-step-box { padding: 7px 14px; border-radius: 6px; font-size: 11px; font-weight: 500; white-space: nowrap; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); }
+  .flow-step-box.done { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3); color: #047857; }
+  .flow-step-box.active { background: rgba(37,99,235,0.1); border-color: var(--accent); color: var(--accent); }
+  .flow-arrow { color: var(--border); font-size: 14px; margin: 0 4px; }
+
+  /* QUOTE LINE ITEMS */
+  .line-item { display: flex; gap: 10px; align-items: center; background: var(--surface2); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; border: 1px solid var(--border); }
+  .line-item p { flex: 1; font-size: 12px; }
+  .line-item span { font-size: 12px; color: var(--muted); width: 60px; text-align: right; }
+  .quote-total { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; text-align: right; }
+  .quote-total p { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .quote-total h3 { font-family: 'Syne', sans-serif; font-size: 22px; color: var(--green); }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <h1>Nexus<span>CRM</span></h1>
+    <p>SaaS Platform — MVP</p>
+  </div>
+  <div class="tenant-badge">
+    <p>Tenant</p>
+    <h4>🏢 Acme Technologies</h4>
+  </div>
+  <nav>
+    <div class="nav-section">Main</div>
+    <div class="nav-item active" onclick="showPage('dashboard', this)"><span class="icon">⚡</span> Dashboard</div>
+    <div class="nav-section">CRM Sales</div>
+    <div class="nav-item" onclick="showPage('leads', this)"><span class="icon">🎯</span> Leads <span class="badge amber">8</span></div>
+    <div class="nav-item" onclick="showPage('contacts', this)"><span class="icon">👥</span> Contacts</div>
+    <div class="nav-item" onclick="showPage('deals', this)"><span class="icon">💼</span> Deals <span class="badge">5</span></div>
+    <div class="nav-item" onclick="showPage('quotes', this)"><span class="icon">📄</span> Quotes</div>
+    <div class="nav-section">Operations</div>
+    <div class="nav-item" onclick="showPage('projects', this)"><span class="icon">📋</span> Projects</div>
+    <div class="nav-item" onclick="showPage('erp', this)"><span class="icon">🔧</span> Resources</div>
+    <div class="nav-item" onclick="showPage('pricebooks', this)"><span class="icon">💰</span> Price Books</div>
+    <div class="nav-section">Knowledge Base</div>
+    <div class="nav-item" onclick="showPage('documents', this)"><span class="icon">📚</span> Documents</div>
+    <div class="nav-item" onclick="showPage('employees', this)"><span class="icon">🙋</span> Employees</div>
+    <div class="nav-section">System</div>
+    <div class="nav-item" onclick="showPage('auditing', this)"><span class="icon">🔍</span> Audit Logs</div>
+    <div class="nav-item" onclick="showPage('reporting', this)"><span class="icon">📊</span> Reports</div>
+    <div class="nav-item" onclick="showPage('users', this)"><span class="icon">🔐</span> User Roles</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="avatar">AM</div>
+      <div>
+        <p>Aryan Mehta</p>
+        <span><span class="role-dot"></span>Admin</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+  <div class="topbar">
+    <h2 id="page-title">Dashboard</h2>
+    <div class="topbar-right">
+      <button class="btn btn-ghost btn-sm" onclick="openModal('addLeadModal')">+ New Lead</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('addLeadModal')">+ Quick Add</button>
+      <div class="notif-btn" onclick="toggleNotif()">🔔<div class="notif-dot"></div></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-row">
+        <div class="stat-card blue">
+          <p>Total Leads</p><h3>24</h3><span>↑ 12% this month</span>
+        </div>
+        <div class="stat-card green">
+          <p>Active Deals</p><h3>11</h3><span>↑ 3 new this week</span>
+        </div>
+        <div class="stat-card amber">
+          <p>Open Quotes</p><h3>7</h3><span class="neg">2 expiring soon</span>
+        </div>
+        <div class="stat-card purple">
+          <p>Projects Active</p><h3>5</h3><span>↑ On track</span>
+        </div>
+      </div>
+
+      <!-- CRM Flow -->
+      <div class="section-card">
+        <h3>CRM Sales Flow</h3>
+        <div class="flow-steps">
+          <div class="flow-step"><div class="flow-step-box done">Lead Capture</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-step-box done">Lead Scoring</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-step-box done">Qualify</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-step-box done">Contact / Company</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-step-box active">Deal / Opportunity</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-step-box">Quote</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="flow-step-box">Project</div></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="section-card">
+          <h3>Recent Leads <span style="font-size:11px;color:var(--muted);font-weight:400">Last 7 days</span></h3>
+          <table>
+            <tr><th>Name</th><th>Source</th><th>Status</th><th>Priority</th></tr>
+            <tr><td>Rajesh Patel</td><td>Website</td><td><span class="badge badge-amber">In Progress</span></td><td><span class="badge badge-red">High</span></td></tr>
+            <tr><td>Priya Sharma</td><td>Facebook</td><td><span class="badge badge-green">Qualified</span></td><td><span class="badge badge-blue">Medium</span></td></tr>
+            <tr><td>Vikram Nair</td><td>Manual</td><td><span class="badge badge-gray">New</span></td><td><span class="badge badge-amber">High</span></td></tr>
+            <tr><td>Anita Desai</td><td>Import</td><td><span class="badge badge-purple">Converted</span></td><td><span class="badge badge-blue">Low</span></td></tr>
+          </table>
+        </div>
+        <div class="section-card">
+          <h3>Project Progress</h3>
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Website Redesign</span><span style="color:var(--green)">72%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:72%;background:var(--green)"></div></div>
+          </div>
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>ERP Integration</span><span style="color:var(--accent)">45%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:45%;background:var(--accent)"></div></div>
+          </div>
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Mobile App Dev</span><span style="color:var(--amber)">30%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:30%;background:var(--amber)"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>CRM Setup</span><span style="color:var(--accent2)">88%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:88%;background:var(--accent2)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <h3>Pending Approvals</h3>
+        <div class="grid-3">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px">
+            <p style="font-size:11px;color:var(--muted)">Leave Request</p>
+            <p style="font-size:13px;margin:4px 0">Rahul Kumar — 3 days PL</p>
+            <div style="display:flex;gap:6px;margin-top:8px"><button class="btn btn-success btn-sm" onclick="showToast('Leave approved!')">Approve</button><button class="btn btn-danger btn-sm" onclick="showToast('Leave rejected.')">Reject</button></div>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px">
+            <p style="font-size:11px;color:var(--muted)">Resource Request</p>
+            <p style="font-size:13px;margin:4px 0">Design Machine — Project A</p>
+            <div style="display:flex;gap:6px;margin-top:8px"><button class="btn btn-success btn-sm" onclick="showToast('Resource allocated!')">Approve</button><button class="btn btn-danger btn-sm" onclick="showToast('Request denied.')">Reject</button></div>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px">
+            <p style="font-size:11px;color:var(--muted)">WFH Request</p>
+            <p style="font-size:13px;margin:4px 0">Priya Sharma — 2 days</p>
+            <div style="display:flex;gap:6px;margin-top:8px"><button class="btn btn-success btn-sm" onclick="showToast('WFH approved!')">Approve</button><button class="btn btn-danger btn-sm" onclick="showToast('Request denied.')">Reject</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LEADS PAGE -->
+    <div class="page" id="page-leads">
+      <div class="stats-row">
+        <div class="stat-card blue"><p>New</p><h3>6</h3></div>
+        <div class="stat-card amber"><p>In Progress</p><h3>8</h3></div>
+        <div class="stat-card green"><p>Qualified</p><h3>5</h3></div>
+        <div class="stat-card purple"><p>Converted</p><h3>3</h3></div>
+      </div>
+      <div class="section-card">
+        <h3>All Leads <button class="btn btn-primary btn-sm" onclick="openModal('addLeadModal')">+ Add Lead</button></h3>
+        <div class="table-wrap">
+          <table>
+            <tr><th>Lead Name</th><th>Company</th><th>Source</th><th>Score</th><th>Priority</th><th>Assigned To</th><th>Status</th><th>Action</th></tr>
+            <tr>
+              <td><strong>Rajesh Patel</strong><br><span style="font-size:10px;color:var(--muted)">rajesh@example.com</span></td>
+              <td>TechCorp Ltd</td><td>Website</td><td><span style="color:var(--amber)">78/100</span></td>
+              <td><span class="badge badge-red">High</span></td><td>Arjun S</td>
+              <td><span class="badge badge-amber">In Progress</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="showToast('Converting to Contact...')">Convert</button></td>
+            </tr>
+            <tr>
+              <td><strong>Priya Sharma</strong><br><span style="font-size:10px;color:var(--muted)">priya@startup.in</span></td>
+              <td>StartupXYZ</td><td>Facebook</td><td><span style="color:var(--green)">92/100</span></td>
+              <td><span class="badge badge-amber">High</span></td><td>Meera K</td>
+              <td><span class="badge badge-green">Qualified</span></td>
+              <td><button class="btn btn-primary btn-sm" onclick="showToast('Lead converted to Contact!')">Convert ✓</button></td>
+            </tr>
+            <tr>
+              <td><strong>Vikram Nair</strong><br><span style="font-size:10px;color:var(--muted)">vikram@co.in</span></td>
+              <td>NaviSoft</td><td>Manual</td><td><span style="color:var(--muted)">45/100</span></td>
+              <td><span class="badge badge-blue">Medium</span></td><td>Unassigned</td>
+              <td><span class="badge badge-gray">New</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="openModal('addLeadModal')">Edit</button></td>
+            </tr>
+            <tr>
+              <td><strong>Anita Desai</strong><br><span style="font-size:10px;color:var(--muted)">anita@firm.com</span></td>
+              <td>GrowthFirm</td><td>Spreadsheet</td><td><span style="color:var(--green)">88/100</span></td>
+              <td><span class="badge badge-blue">Low</span></td><td>Rahul M</td>
+              <td><span class="badge badge-purple">Converted</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="showPage('projects',null)">View Project</button></td>
+            </tr>
+            <tr>
+              <td><strong>Suresh Rao</strong><br><span style="font-size:10px;color:var(--muted)">suresh@rao.in</span></td>
+              <td>MegaGroup</td><td>Website</td><td><span style="color:var(--red)">22/100</span></td>
+              <td><span class="badge badge-gray">Low</span></td><td>Arjun S</td>
+              <td><span class="badge badge-red">Lost</span></td>
+              <td><button class="btn btn-ghost btn-sm">Reopen</button></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACTS PAGE -->
+    <div class="page" id="page-contacts">
+      <div class="grid-2">
+        <div class="section-card">
+          <h3>Contacts <button class="btn btn-primary btn-sm" style="float:right">+ Add Contact</button></h3>
+          <table>
+            <tr><th>Name</th><th>Company</th><th>Designation</th><th>Phone</th></tr>
+            <tr><td>Priya Sharma</td><td>StartupXYZ</td><td>CEO</td><td>+91 98765 43210</td></tr>
+            <tr><td>Anita Desai</td><td>GrowthFirm</td><td>CTO</td><td>+91 91234 56789</td></tr>
+            <tr><td>Rahul Gupta</td><td>TechCorp Ltd</td><td>Manager</td><td>+91 87654 32109</td></tr>
+            <tr><td>Neha Joshi</td><td>NaviSoft</td><td>Director</td><td>+91 76543 21098</td></tr>
+          </table>
+        </div>
+        <div class="section-card">
+          <h3>Companies (Accounts)</h3>
+          <table>
+            <tr><th>Company</th><th>Industry</th><th>Contacts</th><th>Deals</th></tr>
+            <tr><td><strong>StartupXYZ</strong></td><td>Technology</td><td>2</td><td><span class="badge badge-green">2 Active</span></td></tr>
+            <tr><td><strong>GrowthFirm</strong></td><td>Marketing</td><td>1</td><td><span class="badge badge-amber">1 Negotiating</span></td></tr>
+            <tr><td><strong>TechCorp Ltd</strong></td><td>IT Services</td><td>3</td><td><span class="badge badge-blue">3 Active</span></td></tr>
+            <tr><td><strong>NaviSoft</strong></td><td>Software</td><td>1</td><td><span class="badge badge-gray">0 Active</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEALS PAGE -->
+    <div class="page" id="page-deals">
+      <div class="section-card">
+        <h3>Deal Pipeline — Kanban View</h3>
+        <div class="pipeline">
+          <div class="pipeline-col">
+            <div class="pipeline-col-header">Prospecting <span class="count">2</span></div>
+            <div class="deal-card"><h4>NaviSoft — Mobile App</h4><p>Vikram Nair</p><div class="value">₹3,50,000</div></div>
+            <div class="deal-card"><h4>MegaGroup — Analytics</h4><p>Suresh Rao</p><div class="value">₹1,80,000</div></div>
+          </div>
+          <div class="pipeline-col">
+            <div class="pipeline-col-header">Qualification <span class="count">1</span></div>
+            <div class="deal-card"><h4>GrowthFirm — SEO Suite</h4><p>Anita Desai</p><div class="value">₹2,20,000</div></div>
+          </div>
+          <div class="pipeline-col">
+            <div class="pipeline-col-header">Proposal <span class="count">2</span></div>
+            <div class="deal-card"><h4>TechCorp — ERP Setup</h4><p>Rahul Gupta</p><div class="value">₹8,50,000</div></div>
+            <div class="deal-card"><h4>StartupXYZ — CRM</h4><p>Priya Sharma</p><div class="value">₹5,00,000</div></div>
+          </div>
+          <div class="pipeline-col">
+            <div class="pipeline-col-header">Negotiation <span class="count">1</span></div>
+            <div class="deal-card"><h4>GrowthFirm — Redesign</h4><p>Neha Joshi</p><div class="value">₹4,20,000</div></div>
+          </div>
+          <div class="pipeline-col">
+            <div class="pipeline-col-header" style="color:var(--green)">Closed Won <span class="count">2</span></div>
+            <div class="deal-card"><h4>Anita Desai — Portal</h4><p>GrowthFirm</p><div class="value">₹6,00,000</div></div>
+            <div class="deal-card"><h4>TechCorp — DB Migration</h4><p>Rahul Gupta</p><div class="value">₹2,50,000</div></div>
+          </div>
+          <div class="pipeline-col">
+            <div class="pipeline-col-header" style="color:var(--red)">Closed Lost <span class="count">1</span></div>
+            <div class="deal-card"><h4>NaviSoft — BI Tool</h4><p>Vikram Nair</p><div class="value" style="color:var(--red)">₹1,10,000</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUOTES PAGE -->
+    <div class="page" id="page-quotes">
+      <div class="grid-2">
+        <div class="section-card">
+          <h3>Quotes <button class="btn btn-primary btn-sm" onclick="openModal('quoteModal')">+ New Quote</button></h3>
+          <table>
+            <tr><th>Quote #</th><th>Client</th><th>Amount</th><th>Valid Until</th><th>Status</th></tr>
+            <tr><td>QT-2024-001</td><td>StartupXYZ</td><td style="color:var(--green)">₹5,00,000</td><td>Apr 30</td><td><span class="badge badge-amber">Open</span></td></tr>
+            <tr><td>QT-2024-002</td><td>TechCorp</td><td style="color:var(--green)">₹8,50,000</td><td>May 15</td><td><span class="badge badge-blue">Sent</span></td></tr>
+            <tr><td>QT-2024-003</td><td>GrowthFirm</td><td style="color:var(--green)">₹4,20,000</td><td>Apr 10</td><td><span class="badge badge-green">Accepted</span></td></tr>
+            <tr><td>QT-2024-004</td><td>NaviSoft</td><td style="color:var(--muted)">₹3,50,000</td><td>Mar 28</td><td><span class="badge badge-red">Expired</span></td></tr>
+          </table>
+        </div>
+        <div class="section-card">
+          <h3>Quote Detail — QT-2024-003</h3>
+          <p style="font-size:11px;color:var(--muted);margin-bottom:14px">GrowthFirm · Version 2 · Accepted</p>
+          <div class="line-item"><p>UI/UX Design</p><span>₹80,000</span></div>
+          <div class="line-item"><p>Frontend Development</p><span>₹1,20,000</span></div>
+          <div class="line-item"><p>Backend Development</p><span>₹1,50,000</span></div>
+          <div class="line-item"><p>Testing & QA</p><span>₹50,000</span></div>
+          <div class="line-item"><p>Project Management</p><span>₹40,000</span></div>
+          <div class="quote-total">
+            <p>Subtotal ₹4,40,000 · Discount 5% · GST 18%</p>
+            <h3>₹4,95,120</h3>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px">
+            <button class="btn btn-ghost btn-sm" onclick="showToast('Quote exported as PDF!')">📄 Export PDF</button>
+            <button class="btn btn-ghost btn-sm" onclick="openModal('versionModal')">🔁 Version History</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJECTS PAGE -->
+    <div class="page" id="page-projects">
+      <div class="section-card">
+        <h3>Projects — Kanban Task Board</h3>
+        <div class="kanban">
+          <div class="kanban-col">
+            <div class="kanban-col-title"><span class="dot" style="background:var(--muted)"></span> To Do</div>
+            <div class="task-card" onclick="openModal('taskDetailModal')"><h4>Design wireframes</h4><p>Website Redesign</p><div class="task-meta"><span class="badge badge-red">High</span><div class="avatar-sm" style="background:var(--accent)">AM</div></div><div class="task-indicators"><span class="task-indicator">📎 2</span><span class="task-indicator">💬 1</span><span class="task-indicator">⏱ 0h</span></div></div>
+            <div class="task-card" onclick="openModal('taskDetailModal')"><h4>Setup DB schema</h4><p>ERP Integration</p><div class="task-meta"><span class="badge badge-amber">Med</span><div class="avatar-sm" style="background:var(--accent2)">RK</div></div><div class="task-indicators"><span class="task-indicator">📎 1</span><span class="task-indicator">💬 3</span><span class="task-indicator">⏱ 0h</span></div></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-title"><span class="dot" style="background:var(--accent)"></span> In Progress</div>
+            <div class="task-card" onclick="openModal('taskDetailModal')"><h4>Build landing page</h4><p>Website Redesign</p><div class="task-meta"><span class="badge badge-amber">Med</span><div class="avatar-sm" style="background:var(--green)">PS</div></div><div class="task-indicators"><span class="task-indicator">📎 4</span><span class="task-indicator">💬 7</span><span class="task-indicator">⏱ 12h</span></div></div>
+            <div class="task-card" onclick="openModal('taskDetailModal')"><h4>API Integration</h4><p>Mobile App Dev</p><div class="task-meta"><span class="badge badge-red">High</span><div class="avatar-sm" style="background:var(--amber)">VN</div></div><div class="task-indicators"><span class="task-indicator">📎 3</span><span class="task-indicator">💬 5</span><span class="task-indicator">⏱ 8h</span></div></div>
+            <div class="task-card" onclick="openModal('taskDetailModal')"><h4>Write test cases</h4><p>CRM Setup</p><div class="task-meta"><span class="badge badge-blue">Low</span><div class="avatar-sm" style="background:var(--accent)">AD</div></div><div class="task-indicators"><span class="task-indicator">📎 2</span><span class="task-indicator">💬 2</span><span class="task-indicator">⏱ 5h</span></div></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-title"><span class="dot" style="background:var(--amber)"></span> Review</div>
+            <div class="task-card" onclick="openModal('taskDetailModal')"><h4>Code review — Auth</h4><p>CRM Setup</p><div class="task-meta"><span class="badge badge-amber">Med</span><div class="avatar-sm" style="background:var(--accent2)">RK</div></div><div class="task-indicators"><span class="task-indicator">📎 5</span><span class="task-indicator">💬 9</span><span class="task-indicator">⏱ 3h</span></div></div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-title"><span class="dot" style="background:var(--green)"></span> Done</div>
+            <div class="task-card" onclick="openModal('taskDetailModal')"><h4>Project kickoff</h4><p>Website Redesign</p><div class="task-meta"><span class="badge badge-green">Done</span><div class="avatar-sm" style="background:var(--green)">PS</div></div><div class="task-indicators"><span class="task-indicator">📎 3</span><span class="task-indicator">💬 4</span><span class="task-indicator">⏱ 2h</span></div></div>
+            <div class="task-card" onclick="openModal('taskDetailModal')"><h4>Requirements doc</h4><p>ERP Integration</p><div class="task-meta"><span class="badge badge-green">Done</span><div class="avatar-sm" style="background:var(--accent)">AM</div></div><div class="task-indicators"><span class="task-indicator">📎 6</span><span class="task-indicator">💬 8</span><span class="task-indicator">⏱ 6h</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="section-card">
+          <h3>All Projects</h3>
+          <table>
+            <tr><th>Project</th><th>Client</th><th>Progress</th><th>Status</th></tr>
+            <tr><td>Website Redesign</td><td>GrowthFirm</td><td><div class="progress-bar"><div class="progress-fill" style="width:72%;background:var(--green)"></div></div></td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td>ERP Integration</td><td>TechCorp</td><td><div class="progress-bar"><div class="progress-fill" style="width:45%;background:var(--accent)"></div></div></td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td>Mobile App Dev</td><td>StartupXYZ</td><td><div class="progress-bar"><div class="progress-fill" style="width:30%;background:var(--amber)"></div></div></td><td><span class="badge badge-amber">On Hold</span></td></tr>
+            <tr><td>CRM Setup</td><td>NaviSoft</td><td><div class="progress-bar"><div class="progress-fill" style="width:88%;background:var(--accent2)"></div></div></td><td><span class="badge badge-green">Active</span></td></tr>
+          </table>
+        </div>
+        <div class="section-card">
+          <h3>Task Activity Log</h3>
+          <div class="audit-item">
+            <div class="audit-icon" style="background:rgba(79,142,247,0.1)">📝</div>
+            <div><p>Build landing page — status changed to <strong>In Progress</strong></p><span>Priya Sharma · 2 hours ago</span></div>
+          </div>
+          <div class="audit-item">
+            <div class="audit-icon" style="background:rgba(34,200,122,0.1)">✅</div>
+            <div><p>Requirements doc — marked <strong>Done</strong></p><span>Aryan Mehta · 4 hours ago</span></div>
+          </div>
+          <div class="audit-item">
+            <div class="audit-icon" style="background:rgba(245,166,35,0.1)">💬</div>
+            <div><p>Comment added on <strong>API Integration</strong></p><span>Vikram Nair · Yesterday</span></div>
+          </div>
+          <div class="audit-item">
+            <div class="audit-icon" style="background:rgba(124,92,252,0.1)">📎</div>
+            <div><p>File attached to <strong>Design wireframes</strong></p><span>Aryan Mehta · Yesterday</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERP PAGE -->
+    <div class="page" id="page-erp">
+      <div class="stats-row">
+        <div class="stat-card blue"><p>Total Resources</p><h3>18</h3></div>
+        <div class="stat-card green"><p>Available</p><h3>7</h3></div>
+        <div class="stat-card amber"><p>In Use</p><h3>9</h3></div>
+        <div class="stat-card purple"><p>Pending Approval</p><h3>2</h3></div>
+      </div>
+      <div class="grid-2">
+        <div class="section-card">
+          <h3>Human Resources</h3>
+          <table>
+            <tr><th>Employee</th><th>Role</th><th>Status</th><th>Project</th></tr>
+            <tr><td>Arjun Singh</td><td>Developer</td><td><span class="badge badge-green">Available</span></td><td>—</td></tr>
+            <tr><td>Meera Kumar</td><td>Designer</td><td><span class="badge badge-amber">In Use</span></td><td>Website Redesign</td></tr>
+            <tr><td>Rahul Mishra</td><td>QA Engineer</td><td><span class="badge badge-amber">In Use</span></td><td>CRM Setup</td></tr>
+            <tr><td>Sonal Patel</td><td>Manager</td><td><span class="badge badge-green">Available</span></td><td>—</td></tr>
+          </table>
+        </div>
+        <div class="section-card">
+          <h3>Physical Assets</h3>
+          <table>
+            <tr><th>Asset</th><th>Type</th><th>Status</th><th>Project</th></tr>
+            <tr><td>Design Workstation #1</td><td>Machine</td><td><span class="badge badge-amber">In Use</span></td><td>Website Redesign</td></tr>
+            <tr><td>Server Rack A</td><td>Equipment</td><td><span class="badge badge-green">Available</span></td><td>—</td></tr>
+            <tr><td>Test Device Pool</td><td>Equipment</td><td><span class="badge badge-amber">In Use</span></td><td>Mobile App Dev</td></tr>
+            <tr><td>Camera Kit</td><td>Equipment</td><td><span class="badge badge-red">Maintenance</span></td><td>—</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="section-card">
+        <h3>Allocation Requests — Pending Approval</h3>
+        <div class="grid-2">
+          <div style="background:var(--surface2);border:1px solid rgba(245,166,35,0.3);border-radius:10px;padding:14px">
+            <p style="font-size:11px;color:var(--amber);margin-bottom:6px">⏳ PENDING APPROVAL</p>
+            <p style="font-size:13px;font-weight:500">Design Workstation #2</p>
+            <p style="font-size:11px;color:var(--muted);margin:4px 0">Requested by Meera Kumar · ERP Integration</p>
+            <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Cost: ₹500/hr · Duration: 2 weeks</p>
+            <div style="display:flex;gap:8px"><button class="btn btn-success btn-sm" onclick="showToast('Resource allocated!')">✓ Approve</button><button class="btn btn-danger btn-sm" onclick="showToast('Rejected. Double booking alert sent.')">✗ Reject</button></div>
+          </div>
+          <div style="background:var(--surface2);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:14px">
+            <p style="font-size:11px;color:var(--red);margin-bottom:6px">⚠️ DOUBLE BOOKING ALERT</p>
+            <p style="font-size:13px;font-weight:500">Server Rack A</p>
+            <p style="font-size:11px;color:var(--muted);margin:4px 0">Requested by Rahul Mishra · CRM Setup</p>
+            <p style="font-size:11px;color:var(--muted);margin-bottom:10px">Already booked Apr 5–Apr 12 by TechCorp project</p>
+            <div style="display:flex;gap:8px"><button class="btn btn-danger btn-sm" onclick="showToast('Alert noted. Team notified.')">Resolve</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRICE BOOKS PAGE -->
+    <div class="page" id="page-pricebooks">
+      <div class="section-card">
+        <h3>Price Books — Predefined Pricing <button class="btn btn-primary btn-sm" style="float:right">+ New Price Book</button></h3>
+      </div>
+      <div class="section-card">
+        <h3>Development Services</h3>
+        <div class="pricing-grid">
+          <div class="price-card">
+            <h4>Frontend Development</h4>
+            <p>HTML, CSS, JavaScript, React</p>
+            <p style="font-size:10px;color:var(--accent);margin-top:6px">Base Rate</p>
+            <div class="price-value">₹1,20,000</div>
+            <p style="font-size:10px;color:var(--muted);margin-top:4px">Per 100 hours</p>
+          </div>
+          <div class="price-card">
+            <h4>Backend Development</h4>
+            <p>Node.js, Python, Database Design</p>
+            <p style="font-size:10px;color:var(--accent);margin-top:6px">Base Rate</p>
+            <div class="price-value">₹1,50,000</div>
+            <p style="font-size:10px;color:var(--muted);margin-top:4px">Per 100 hours</p>
+          </div>
+          <div class="price-card">
+            <h4>UI/UX Design</h4>
+            <p>Wireframes, Mockups, Prototypes</p>
+            <p style="font-size:10px;color:var(--accent);margin-top:6px">Base Rate</p>
+            <div class="price-value">₹80,000</div>
+            <p style="font-size:10px;color:var(--muted);margin-top:4px">Per 80 hours</p>
+          </div>
+        </div>
+      </div>
+      <div class="section-card">
+        <h3>Consulting & Support Services</h3>
+        <div class="pricing-grid">
+          <div class="price-card">
+            <h4>Project Management</h4>
+            <p>Planning, Coordination, Reporting</p>
+            <p style="font-size:10px;color:var(--accent);margin-top:6px">Base Rate</p>
+            <div class="price-value">₹40,000</div>
+            <p style="font-size:10px;color:var(--muted);margin-top:4px">Per 100 hours</p>
+          </div>
+          <div class="price-card">
+            <h4>Testing & QA</h4>
+            <p>Manual & Automated Testing</p>
+            <p style="font-size:10px;color:var(--accent);margin-top:6px">Base Rate</p>
+            <div class="price-value">₹50,000</div>
+            <p style="font-size:10px;color:var(--muted);margin-top:4px">Per 100 hours</p>
+          </div>
+          <div class="price-card">
+            <h4>Technical Consulting</h4>
+            <p>Architecture, Code Review, Guidance</p>
+            <p style="font-size:10px;color:var(--accent);margin-top:6px">Base Rate</p>
+            <div class="price-value">₹2,00,000</div>
+            <p style="font-size:10px;color:var(--muted);margin-top:4px">Per 40 hours (Monthly)</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top: 20px;">
+        <div class="section-card">
+          <h3>Hardware & Equipment</h3>
+          <table>
+            <tr><th>Item</th><th>Category</th><th>Daily Rate</th><th>Monthly Rate</th></tr>
+            <tr><td>Design Workstation</td><td>Equipment</td><td>₹500</td><td>₹10,000</td></tr>
+            <tr><td>Server Rack</td><td>Equipment</td><td>₹1,000</td><td>₹20,000</td></tr>
+            <tr><td>Mobile Device Pool</td><td>Equipment</td><td>₹800</td><td>₹15,000</td></tr>
+            <tr><td>Testing Lab Setup</td><td>Equipment</td><td>₹1,500</td><td>₹25,000</td></tr>
+          </table>
+        </div>
+        <div class="section-card">
+          <h3>License & Discounts</h3>
+          <table>
+            <tr><th>Discount Type</th><th>Condition</th><th>Discount %</th></tr>
+            <tr><td>Volume Discount — Dev</td><td>>500 hours/month</td><td>10%</td></tr>
+            <tr><td>Long-term Contract</td><td>>6 months engagement</td><td>15%</td></tr>
+            <tr><td>Bundled Services</td><td>Dev + QA + PM together</td><td>8%</td></tr>
+            <tr><td>Recurring Client</td><td>Repeat project (3+)</td><td>12%</td></tr>
+            <tr><td>Early Payment</td><td>Payment within 7 days</td><td>2%</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCUMENTS PAGE -->
+    <div class="page" id="page-documents">
+      <div class="section-card">
+        <h3>Knowledge Base & Self-Service Documents</h3>
+      </div>
+      <div class="section-card">
+        <h3>Training Materials</h3>
+        <div class="doc-grid">
+          <div class="doc-card">
+            <div class="doc-icon">📖</div>
+            <h4>System User Guide</h4>
+            <p>Complete walkthrough of all system features, modules, and workflows. Covers leads, quotes, projects, and resources.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="showToast('Opening System User Guide...')">📄 View PDF</button>
+          </div>
+          <div class="doc-card">
+            <div class="doc-icon">🎯</div>
+            <h4>CRM Best Practices</h4>
+            <p>Industry standards for lead management, conversion strategies, and customer relationship optimization.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="showToast('Opening CRM Best Practices...')">📄 View PDF</button>
+          </div>
+          <div class="doc-card">
+            <div class="doc-icon">⚙️</div>
+            <h4>Project Management Handbook</h4>
+            <p>Guidelines for task creation, team collaboration, time tracking, document management, and project closure.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="showToast('Opening PM Handbook...')">📄 View PDF</button>
+          </div>
+          <div class="doc-card">
+            <div class="doc-icon">📊</div>
+            <h4>Reporting & Analytics Guide</h4>
+            <p>How to generate reports, interpret dashboards, export data, and understand key performance indicators.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="showToast('Opening Analytics Guide...')">📄 View PDF</button>
+          </div>
+        </div>
+      </div>
+      <div class="section-card">
+        <h3>HR & Compliance Documents</h3>
+        <div class="doc-grid">
+          <div class="doc-card">
+            <div class="doc-icon">🏢</div>
+            <h4>Employee Handbook</h4>
+            <p>Company policies, code of conduct, attendance rules, leave policies, and employee benefits information.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="showToast('Opening Employee Handbook...')">📄 View PDF</button>
+          </div>
+          <div class="doc-card">
+            <div class="doc-icon">⚖️</div>
+            <h4>Data Privacy & Security Policy</h4>
+            <p>Information security protocols, data protection measures, confidentiality agreements, and compliance standards.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="showToast('Opening Security Policy...')">📄 View PDF</button>
+          </div>
+          <div class="doc-card">
+            <div class="doc-icon">💼</div>
+            <h4>Contract Templates</h4>
+            <p>Ready-to-use templates for project agreements, client contracts, NDA forms, and service level agreements.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="showToast('Opening Contract Templates...')">📁 View Folder</button>
+          </div>
+          <div class="doc-card">
+            <div class="doc-icon">📋</div>
+            <h4>Compliance Checklist</h4>
+            <p>Monthly and quarterly compliance verification, audit readiness, and regulatory requirement tracking.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="showToast('Opening Compliance Checklist...')">📄 View Document</button>
+          </div>
+        </div>
+      </div>
+      <div class="section-card">
+        <h3>Technical Documentation</h3>
+        <div class="doc-grid">
+          <div class="doc-card">
+            <div class="doc-icon">🔧</div>
+            <h4>API Documentation</h4>
+            <p>REST API endpoints, authentication methods, request/response formats, and integration examples for developers.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="showToast('Opening API Docs...')">📄 View Docs</button>
+          </div>
+          <div class="doc-card">
+            <div class="doc-icon">🗄️</div>
+            <h4>Database Schema</h4>
+            <p>Entity-relationship diagrams, table structures, field definitions, and database design documentation.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="showToast('Opening DB Schema...')">📄 View Docs</button>
+          </div>
+          <div class="doc-card">
+            <div class="doc-icon">🚀</div>
+            <h4>Deployment Guide</h4>
+            <p>Setup instructions, system requirements, configuration steps, and troubleshooting guide for IT administrators.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="showToast('Opening Deployment Guide...')">📄 View Docs</button>
+          </div>
+          <div class="doc-card">
+            <div class="doc-icon">🐛</div>
+            <h4>Troubleshooting FAQ</h4>
+            <p>Common issues, solutions, error code reference, and contact procedures for technical support assistance.</p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="showToast('Opening Troubleshooting FAQ...')">📄 View Docs</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EMPLOYEES PAGE -->
+    <div class="page" id="page-employees">
+      <div class="grid-2">
+        <div class="section-card">
+          <h3>Employee Directory</h3>
+          <table>
+            <tr><th>Name</th><th>Department</th><th>Role</th><th>Status</th></tr>
+            <tr><td><strong>Aryan Mehta</strong></td><td>Management</td><td><span class="badge badge-purple">Admin</span></td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td><strong>Priya Sharma</strong></td><td>Sales</td><td><span class="badge badge-blue">Manager</span></td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td><strong>Arjun Singh</strong></td><td>Engineering</td><td><span class="badge badge-gray">Employee</span></td><td><span class="badge badge-amber">WFH</span></td></tr>
+            <tr><td><strong>Meera Kumar</strong></td><td>Design</td><td><span class="badge badge-gray">Employee</span></td><td><span class="badge badge-green">Active</span></td></tr>
+            <tr><td><strong>Rahul Mishra</strong></td><td>QA</td><td><span class="badge badge-gray">Employee</span></td><td><span class="badge badge-red">On Leave</span></td></tr>
+          </table>
+        </div>
+        <div class="section-card">
+          <h3>Leave & WFH Requests</h3>
+          <table>
+            <tr><th>Employee</th><th>Type</th><th>Days</th><th>Status</th><th>Action</th></tr>
+            <tr><td>Rahul Kumar</td><td>Paid Leave</td><td>3</td><td><span class="badge badge-amber">Pending</span></td><td><button class="btn btn-success btn-sm" onclick="showToast('Leave approved!')">Approve</button></td></tr>
+            <tr><td>Arjun Singh</td><td>WFH</td><td>2</td><td><span class="badge badge-green">Approved</span></td><td>—</td></tr>
+            <tr><td>Sonal Patel</td><td>Medical</td><td>5</td><td><span class="badge badge-amber">Pending</span></td><td><button class="btn btn-success btn-sm" onclick="showToast('Leave approved!')">Approve</button></td></tr>
+            <tr><td>Meera Kumar</td><td>WFH</td><td>1</td><td><span class="badge badge-red">Rejected</span></td><td>—</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="section-card">
+        <h3>Attendance & Timesheets</h3>
+        <table>
+          <tr><th>Employee</th><th>Today</th><th>This Week</th><th>Leave Balance</th><th>Tasks Completed</th></tr>
+          <tr><td>Arjun Singh</td><td><span class="badge badge-amber">WFH</span></td><td>38 hrs</td><td>12 days PL · 6 ML</td><td>7</td></tr>
+          <tr><td>Meera Kumar</td><td><span class="badge badge-green">Present</span></td><td>40 hrs</td><td>10 days PL · 6 ML</td><td>5</td></tr>
+          <tr><td>Rahul Mishra</td><td><span class="badge badge-red">Absent</span></td><td>32 hrs</td><td>8 days PL · 4 ML</td><td>3</td></tr>
+          <tr><td>Sonal Patel</td><td><span class="badge badge-green">Present</span></td><td>40 hrs</td><td>15 days PL · 6 ML</td><td>9</td></tr>
+        </table>
+      </div>
+      <div class="section-card">
+        <h3>On-Site Work Requests</h3>
+        <table>
+          <tr><th>Employee</th><th>Project</th><th>Date</th><th>Duration</th><th>Reason</th><th>Status</th><th>Action</th></tr>
+          <tr><td>Arjun Singh</td><td>Client Visit — TechCorp</td><td>Apr 5, 2024</td><td>Full Day</td><td>Client requirement meeting</td><td><span class="badge badge-amber">Pending</span></td><td><button class="btn btn-success btn-sm" onclick="showToast('On-site work approved!')">Approve</button></td></tr>
+          <tr><td>Meera Kumar</td><td>Office Setup</td><td>Apr 3, 2024</td><td>Half Day</td><td>Equipment setup at branch</td><td><span class="badge badge-green">Approved</span></td><td>—</td></tr>
+          <tr><td>Sonal Patel</td><td>Conference — Tech Summit</td><td>Apr 10-12, 2024</td><td>3 Days</td><td>Industry conference attendance</td><td><span class="badge badge-amber">Pending</span></td><td><button class="btn btn-success btn-sm" onclick="showToast('On-site work approved!')">Approve</button></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- AUDITING PAGE -->
+    <div class="page" id="page-auditing">
+      <div class="section-card">
+        <h3>Audit Log — System Wide <span style="float:right"><button class="btn btn-ghost btn-sm" onclick="showToast('Audit report exported!')">📄 Export</button></span></h3>
+        <div style="display:flex;gap:10px;margin-bottom:16px">
+          <select class="form-control" style="width:150px"><option>All Modules</option><option>Lead</option><option>Quote</option><option>Project</option><option>User</option><option>ERP</option></select>
+          <select class="form-control" style="width:150px"><option>All Actions</option><option>Login</option><option>Create</option><option>Update</option><option>Delete</option><option>Export</option></select>
+          <select class="form-control" style="width:150px"><option>All Users</option><option>Aryan Mehta</option><option>Priya Sharma</option><option>Arjun Singh</option></select>
+          <button class="btn btn-primary btn-sm">Filter</button>
+        </div>
+        <div class="audit-item"><div class="audit-icon" style="background:rgba(239,68,68,0.1)">⚠️</div><div><p><strong>Anomaly Detected</strong> — Rapid role change for Arjun Singh (3x in 10 mins)</p><span>System · Today 09:42 AM · IP: 192.168.1.45</span></div></div>
+        <div class="audit-item"><div class="audit-icon" style="background:rgba(79,142,247,0.1)">🔐</div><div><p>User <strong>Priya Sharma</strong> logged in</p><span>User Module · Today 09:15 AM · IP: 192.168.1.22</span></div></div>
+        <div class="audit-item"><div class="audit-icon" style="background:rgba(34,200,122,0.1)">✅</div><div><p>Quote <strong>QT-2024-003</strong> accepted by GrowthFirm</p><span>Quote Module · Today 08:50 AM · Priya Sharma</span></div></div>
+        <div class="audit-item"><div class="audit-icon" style="background:rgba(245,166,35,0.1)">📝</div><div><p>Lead <strong>Rajesh Patel</strong> status updated to In Progress</p><span>Lead Module · Yesterday 05:30 PM · Arjun Singh</span></div></div>
+        <div class="audit-item"><div class="audit-icon" style="background:rgba(124,92,252,0.1)">📤</div><div><p>Data export performed — Leads CSV (24 records)</p><span>Lead Module · Yesterday 04:00 PM · Aryan Mehta · IP: 192.168.1.10</span></div></div>
+        <div class="audit-item"><div class="audit-icon" style="background:rgba(79,142,247,0.1)">🔧</div><div><p>Role changed: <strong>Rahul Mishra</strong> → Employee (was IT Staff)</p><span>User Module · Yesterday 02:30 PM · Aryan Mehta</span></div></div>
+        <div class="audit-item"><div class="audit-icon" style="background:rgba(34,200,122,0.1)">📋</div><div><p>Task <strong>Build landing page</strong> created in Website Redesign</p><span>Project Module · Yesterday 11:00 AM · Priya Sharma</span></div></div>
+      </div>
+    </div>
+
+    <!-- REPORTING PAGE -->
+    <div class="page" id="page-reporting">
+      <div class="grid-2">
+        <div class="section-card">
+          <h3>Lead Conversion Report</h3>
+          <div class="report-bar"><div class="report-bar-label">New</div><div class="report-bar-track"><div class="report-bar-fill" style="width:25%;background:var(--muted)">6</div></div><div class="report-bar-value">6</div></div>
+          <div class="report-bar"><div class="report-bar-label">In Progress</div><div class="report-bar-track"><div class="report-bar-fill" style="width:33%;background:var(--accent)">8</div></div><div class="report-bar-value">8</div></div>
+          <div class="report-bar"><div class="report-bar-label">Qualified</div><div class="report-bar-track"><div class="report-bar-fill" style="width:21%;background:var(--amber)">5</div></div><div class="report-bar-value">5</div></div>
+          <div class="report-bar"><div class="report-bar-label">Converted</div><div class="report-bar-track"><div class="report-bar-fill" style="width:12%;background:var(--green)">3</div></div><div class="report-bar-value">3</div></div>
+          <div class="report-bar"><div class="report-bar-label">Lost</div><div class="report-bar-track"><div class="report-bar-fill" style="width:8%;background:var(--red)">2</div></div><div class="report-bar-value">2</div></div>
+        </div>
+        <div class="section-card">
+          <h3>Sales Pipeline Report</h3>
+          <div class="report-bar"><div class="report-bar-label">Prospecting</div><div class="report-bar-track"><div class="report-bar-fill" style="width:40%;background:var(--muted)">₹5.3L</div></div></div>
+          <div class="report-bar"><div class="report-bar-label">Proposal</div><div class="report-bar-track"><div class="report-bar-fill" style="width:65%;background:var(--accent)">₹13.5L</div></div></div>
+          <div class="report-bar"><div class="report-bar-label">Negotiation</div><div class="report-bar-track"><div class="report-bar-fill" style="width:30%;background:var(--amber)">₹4.2L</div></div></div>
+          <div class="report-bar"><div class="report-bar-label">Closed Won</div><div class="report-bar-track"><div class="report-bar-fill" style="width:85%;background:var(--green)">₹8.5L</div></div></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="section-card">
+          <h3>Project Progress Report</h3>
+          <table>
+            <tr><th>Project</th><th>Tasks Done</th><th>Total</th><th>%</th></tr>
+            <tr><td>Website Redesign</td><td>13</td><td>18</td><td><span style="color:var(--green)">72%</span></td></tr>
+            <tr><td>ERP Integration</td><td>9</td><td>20</td><td><span style="color:var(--accent)">45%</span></td></tr>
+            <tr><td>Mobile App Dev</td><td>3</td><td>10</td><td><span style="color:var(--amber)">30%</span></td></tr>
+            <tr><td>CRM Setup</td><td>22</td><td>25</td><td><span style="color:var(--accent2)">88%</span></td></tr>
+          </table>
+        </div>
+        <div class="section-card">
+          <h3>Employee Productivity</h3>
+          <table>
+            <tr><th>Employee</th><th>Tasks Done</th><th>Hrs Logged</th><th>Performance</th></tr>
+            <tr><td>Sonal Patel</td><td>9</td><td>40h</td><td><span class="badge badge-green">Excellent</span></td></tr>
+            <tr><td>Arjun Singh</td><td>7</td><td>38h</td><td><span class="badge badge-green">Good</span></td></tr>
+            <tr><td>Meera Kumar</td><td>5</td><td>40h</td><td><span class="badge badge-amber">Average</span></td></tr>
+            <tr><td>Rahul Mishra</td><td>3</td><td>32h</td><td><span class="badge badge-red">Below Avg</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS / ROLES PAGE -->
+    <div class="page" id="page-users">
+      <div class="section-card">
+        <h3>Tenant: Acme Technologies · Multi-Tenant Architecture</h3>
+        <div style="background:var(--surface2);border:1px dashed var(--border);border-radius:10px;padding:16px;margin-bottom:14px">
+          <p style="font-size:11px;color:var(--muted);margin-bottom:8px">🏢 PLATFORM LAYER — Super Admin (All Tenants)</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:12px"><strong>Tenant 1:</strong> Acme Technologies <span class="badge badge-green" style="margin-left:6px">Active</span></div>
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:12px"><strong>Tenant 2:</strong> StartupXYZ <span class="badge badge-green" style="margin-left:6px">Active</span></div>
+            <div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:12px"><strong>Tenant 3:</strong> GrowthFirm <span class="badge badge-amber" style="margin-left:6px">Trial</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="section-card">
+        <h3>User Roles & Permissions — Acme Technologies</h3>
+        <table>
+          <tr><th>Role</th><th>Manage Users</th><th>Leads</th><th>Quotes</th><th>Projects</th><th>Reports</th><th>Audit Logs</th></tr>
+          <tr><td><span class="badge badge-red">Super Admin</span></td><td>✅ All Tenants</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅ Global</td></tr>
+          <tr><td><span class="badge badge-purple">Admin</span></td><td>✅ Own Tenant</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅ Tenant</td></tr>
+          <tr><td><span class="badge badge-blue">IT Staff</span></td><td>✅ Assign only</td><td>❌</td><td>❌</td><td>✅ Assign</td><td>❌</td><td>❌</td></tr>
+          <tr><td><span class="badge badge-amber">Manager</span></td><td>❌</td><td>✅ Assign</td><td>✅ Approve</td><td>✅ Manage</td><td>👁 View only</td><td>❌</td></tr>
+          <tr><td><span class="badge badge-gray">Employee</span></td><td>❌</td><td>✅ Own leads</td><td>✅ Update</td><td>✅ Own tasks</td><td>❌</td><td>❌</td></tr>
+        </table>
+      </div>
+      <div class="section-card">
+        <h3>Assign Role to User</h3>
+        <div style="display:flex;gap:12px;align-items:flex-end">
+          <div class="form-group" style="margin:0;flex:1"><label>User</label><select class="form-control"><option>Arjun Singh</option><option>Meera Kumar</option><option>Rahul Mishra</option></select></div>
+          <div class="form-group" style="margin:0;flex:1"><label>Assign Role</label><select class="form-control"><option>Employee</option><option>Manager</option><option>IT Staff</option><option>Admin</option></select></div>
+          <button class="btn btn-primary" onclick="showToast('Role updated successfully!')">Update Role</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end content -->
+</main>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-panel-header">Notifications <span style="font-size:11px;color:var(--accent);cursor:pointer">Mark all read</span></div>
+  <div class="notif-item"><p><span class="n-dot"></span>Quote QT-2024-003 accepted by GrowthFirm</p><span>2 mins ago</span></div>
+  <div class="notif-item"><p><span class="n-dot"></span>Task deadline: Build landing page — Tomorrow</p><span>1 hour ago</span></div>
+  <div class="notif-item"><p><span class="n-dot"></span>Leave request from Rahul Kumar pending</p><span>3 hours ago</span></div>
+  <div class="notif-item"><p><span class="n-dot"></span>Anomaly detected in audit logs</p><span>Today 9:42 AM</span></div>
+  <div class="notif-item"><p>New lead assigned: Vikram Nair → You</p><span>Yesterday</span></div>
+</div>
+
+<!-- ADD LEAD MODAL -->
+<div class="modal-overlay" id="addLeadModal">
+  <div class="modal">
+    <h3>➕ Add New Lead</h3>
+    <div class="grid-2">
+      <div class="form-group"><label>Full Name</label><input class="form-control" placeholder="e.g. Rajesh Patel"></div>
+      <div class="form-group"><label>Email</label><input class="form-control" type="email" placeholder="email@company.com"></div>
+      <div class="form-group"><label>Phone</label><input class="form-control" placeholder="+91 98765 43210"></div>
+      <div class="form-group"><label>Company</label><input class="form-control" placeholder="Company Name"></div>
+      <div class="form-group"><label>Source</label><select class="form-control"><option>Website</option><option>Facebook Form</option><option>Spreadsheet Import</option><option>Manual</option></select></div>
+      <div class="form-group"><label>Priority</label><select class="form-control"><option>High</option><option>Medium</option><option>Low</option></select></div>
+      <div class="form-group"><label>Assign To</label><select class="form-control"><option>Arjun Singh</option><option>Meera Kumar</option><option>Priya Sharma</option></select></div>
+      <div class="form-group"><label>Lead Score</label><input class="form-control" type="number" placeholder="0–100" min="0" max="100"></div>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea class="form-control" rows="2" placeholder="Additional notes..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('addLeadModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('addLeadModal');showToast('Lead created successfully!')">Create Lead</button>
+    </div>
+  </div>
+</div>
+
+<!-- TASK DETAIL MODAL -->
+<div class="modal-overlay" id="taskDetailModal">
+  <div class="modal" style="width:600px;max-height:90vh;overflow-y:auto">
+    <h3>🎯 Build landing page</h3>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:14px">Website Redesign · Assigned to Priya Sharma</p>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div><p style="font-size:10px;color:var(--muted);margin-bottom:4px">PRIORITY</p><span class="badge badge-amber">Medium</span></div>
+      <div><p style="font-size:10px;color:var(--muted);margin-bottom:4px">STATUS</p><span class="badge badge-blue">In Progress</span></div>
+      <div><p style="font-size:10px;color:var(--muted);margin-bottom:4px">DUE DATE</p><span style="font-size:12px">Apr 20, 2024</span></div>
+      <div><p style="font-size:10px;color:var(--muted);margin-bottom:4px">PROGRESS</p><span style="font-size:12px">65%</span></div>
+    </div>
+    
+    <div class="progress-bar" style="margin-bottom:16px"><div class="progress-fill" style="width:65%;background:var(--accent)"></div></div>
+    
+    <div class="section-card" style="background:var(--surface2);border:none;padding:12px;margin-bottom:12px">
+      <p style="font-size:11px;color:var(--muted);margin-bottom:8px">DESCRIPTION</p>
+      <p style="font-size:12px;line-height:1.5">Create a responsive landing page with hero section, feature highlights, testimonials, and CTA buttons. Must include dark/light theme toggle and optimize for mobile devices.</p>
+    </div>
+    
+    <div style="margin-bottom:16px">
+      <h4 style="font-size:12px;font-weight:600;margin-bottom:10px">📎 Attachments (4)</h4>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:11px">📄 wireframes-v3.pdf</span><span style="font-size:10px;color:var(--muted)">2.4 MB</span>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:11px">🎨 design-mockup.figma</span><span style="font-size:10px;color:var(--muted)">Link</span>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:11px">📑 requirements.docx</span><span style="font-size:10px;color:var(--muted)">856 KB</span>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:11px">📊 analytics-report.xlsx</span><span style="font-size:10px;color:var(--muted)">1.1 MB</span>
+        </div>
+      </div>
+      <div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="showToast('File selected for upload...')">+ Add File</button></div>
+    </div>
+    
+    <div style="margin-bottom:16px">
+      <h4 style="font-size:12px;font-weight:600;margin-bottom:10px">✅ Checklist (5 items)</h4>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer"><input type="checkbox" checked> Hero section design & code</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer"><input type="checkbox" checked> Feature cards component</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer"><input type="checkbox" checked> Testimonials section</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer"><input type="checkbox"> CTA buttons & forms</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:11px;cursor:pointer"><input type="checkbox"> Mobile responsiveness test</label>
+      </div>
+    </div>
+    
+    <div style="margin-bottom:16px">
+      <h4 style="font-size:12px;font-weight:600;margin-bottom:10px">⏱ Time Tracking</h4>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px">
+        <p style="font-size:10px;color:var(--muted);margin-bottom:6px">Total Hours Logged: <strong style="color:var(--text)">12.5 hours</strong></p>
+        <p style="font-size:10px;color:var(--muted)">Estimated: 16 hours · Progress: 78% of time spent</p>
+      </div>
+      <div style="display:flex;gap:6px">
+        <input type="number" class="form-control" placeholder="Hours" style="width:80px;height:32px" value="2">
+        <input type="text" class="form-control" placeholder="Add note..." style="flex:1;height:32px">
+        <button class="btn btn-primary btn-sm" onclick="showToast('Time logged successfully!')">Log Time</button>
+      </div>
+    </div>
+    
+    <div style="margin-bottom:16px">
+      <h4 style="font-size:12px;font-weight:600;margin-bottom:10px">💬 Comments (7)</h4>
+      <div style="display:flex;flex-direction:column;gap:10px;max-height:200px;overflow-y:auto;margin-bottom:10px;padding-right:6px">
+        <div style="background:var(--surface2);border-radius:6px;padding:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:11px;font-weight:500">Priya Sharma</span><span style="font-size:10px;color:var(--muted)">2 hours ago</span>
+          </div>
+          <p style="font-size:11px;line-height:1.4">Great progress! The hero section looks amazing. Please review the responsive behavior on tablet.</p>
+        </div>
+        <div style="background:var(--surface2);border-radius:6px;padding:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:11px;font-weight:500">Aryan Mehta</span><span style="font-size:10px;color:var(--muted)">5 hours ago</span>
+          </div>
+          <p style="font-size:11px;line-height:1.4">Reviewed the Figma mockup. Minor color adjustments needed in the CTA buttons. Will discuss in standup.</p>
+        </div>
+        <div style="background:var(--surface2);border-radius:6px;padding:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-size:11px;font-weight:500">Meera Kumar</span><span style="font-size:10px;color:var(--muted)">Yesterday</span>
+          </div>
+          <p style="font-size:11px;line-height:1.4">Design approved! Ready for development. Moving to In Progress. @Priya Sharma</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <input type="text" class="form-control" placeholder="Add a comment..." style="flex:1;height:32px">
+        <button class="btn btn-primary btn-sm" onclick="showToast('Comment added!')">Post</button>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('taskDetailModal')">Close</button>
+      <button class="btn btn-primary" onclick="closeModal('taskDetailModal');showToast('Task updated successfully!')">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- VERSION HISTORY MODAL -->
+<div class="modal-overlay" id="versionModal">
+  <div class="modal">
+    <h3>🔁 Quote Version History — QT-2024-003</h3>
+    <div class="timeline-item"><div><div class="timeline-dot" style="background:var(--green)"></div></div><div><p><strong>Version 2</strong> — Current (Accepted)</p><span>Modified by Priya Sharma · Apr 1, 2024 · Reason: Client requested 5% discount</span></div></div>
+    <div class="timeline-item"><div><div class="timeline-dot" style="background:var(--muted)"></div></div><div><p><strong>Version 1</strong> — Original Draft</p><span>Created by Aryan Mehta · Mar 25, 2024 · Initial quote sent to GrowthFirm</span></div></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('versionModal')">Close</button></div>
+  </div>
+</div>
+
+<!-- QUOTE MODAL -->
+<div class="modal-overlay" id="quoteModal">
+  <div class="modal">
+    <h3>📄 New Quote</h3>
+    <div class="grid-2">
+      <div class="form-group"><label>Client / Company</label><select class="form-control"><option>GrowthFirm</option><option>TechCorp</option><option>StartupXYZ</option></select></div>
+      <div class="form-group"><label>Valid Until</label><input class="form-control" type="date"></div>
+    </div>
+    <div class="form-group"><label>Line Items</label>
+      <div style="display:flex;gap:8px;margin-bottom:6px"><input class="form-control" placeholder="Service / Product" style="flex:2"><input class="form-control" placeholder="Amount ₹" style="flex:1" type="number"></div>
+      <div style="display:flex;gap:8px;margin-bottom:6px"><input class="form-control" placeholder="Service / Product" style="flex:2"><input class="form-control" placeholder="Amount ₹" style="flex:1" type="number"></div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Discount %</label><input class="form-control" placeholder="e.g. 5"></div>
+      <div class="form-group"><label>Tax %</label><input class="form-control" placeholder="e.g. 18"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('quoteModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('quoteModal');showToast('Quote created! QT-2024-005')">Generate Quote</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" style="position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 20px;font-size:13px;font-weight:500;z-index:300;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.1);animation:fadeIn 0.3s ease"></div>
+
+<script>
+  const pages = {
+    'dashboard': 'Dashboard',
+    'leads': 'Lead Management',
+    'contacts': 'Contacts & Companies',
+    'deals': 'Deal Pipeline',
+    'quotes': 'Quote Management',
+    'projects': 'Project Management',
+    'erp': 'Resource Management (ERP)',
+    'pricebooks': 'Price Books',
+    'documents': 'Knowledge Base & Documents',
+    'employees': 'Employee Management',
+    'auditing': 'Audit Logs',
+    'reporting': 'Reports & Analytics',
+    'users': 'User & Role Management'
+  };
+
+  function showPage(id, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    document.getElementById('page-title').textContent = pages[id];
+    if (el) el.classList.add('active');
+    document.getElementById('notifPanel').classList.remove('open');
+  }
+
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+  });
+
+  function toggleNotif() {
+    document.getElementById('notifPanel').classList.toggle('open');
+  }
+
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = '✓ ' + msg;
+    t.style.display = 'block';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.style.display = 'none', 3000);
+  }
+
+  document.addEventListener('click', e => {
+    const panel = document.getElementById('notifPanel');
+    if (!panel.contains(e.target) && !e.target.closest('.notif-btn')) {
+      panel.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>
